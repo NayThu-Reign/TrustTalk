@@ -1,4 +1,5 @@
 name: Build Electron App
+run: npx electron-builder --publish=never
 
 on:
   push:
