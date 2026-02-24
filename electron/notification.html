@@ -1,0 +1,152 @@
+<!-- notification.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .notification {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.2s;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .notification:hover {
+      transform: scale(1.02);
+    }
+
+    .notification.mention {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(500px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .icon img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .content {
+      flex: 1;
+      color: white;
+      min-width: 0;
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .body {
+      font-size: 13px;
+      opacity: 0.9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .close {
+      color: white;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="notification" id="notification">
+    <div class="icon" id="icon">💬</div>
+    <div class="content">
+      <div class="title" id="title">Notification</div>
+      <div class="body" id="body">Message body</div>
+    </div>
+    <button class="close" id="close">×</button>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    let notificationData = null;
+
+    ipcRenderer.on('notification-data', (event, data) => {
+      notificationData = data;
+      
+      document.getElementById('title').textContent = data.title;
+      document.getElementById('body').textContent = data.body;
+      
+      if (data.icon) {
+        document.getElementById('icon').innerHTML = 
+          `<img src="${data.icon}" alt="icon" />`;
+      }
+
+      if (data.isMention) {
+        document.getElementById('notification').classList.add('mention');
+      }
+    });
+
+    document.getElementById('notification').addEventListener('click', () => {
+      ipcRenderer.send(`notification-click-${require('electron').remote.getCurrentWindow().id}`);
+    });
+
+    document.getElementById('close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.close();
+    });
+  </script>
+</body>
+</html>
