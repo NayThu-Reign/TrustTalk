@@ -189,69 +189,79 @@ function MessageSync({ chatId, visibleMessages = 7 }) {
     return result;
   }, [chatId, visibleMessages, token, decryptMedia]);
 
-  // Load on chat enter: cache first, fallback to API when cache empty/fails
-  const loadMessages = useCallback(async () => {
-    if (!chatId) {
-      setData(null);
-      setIsLoading(false);
-      return;
-    }
-    abortRef.current = false;
+ // Load on chat enter: API first, fallback to cache when API fails/empty
+const loadMessages = useCallback(async () => {
+  if (!chatId) {
     setData(null);
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(false);
+    return;
+  }
 
-    // 1️⃣ Try cache first
-    let cacheData = null;
-    try {
-      const cachedMessages = window.messageDb
-        ? await window.messageDb.getMessages(chatId, visibleMessages).catch(() => [])
-        : [];
-      if (cachedMessages?.length > 0) {
-        console.log(`✅ Found ${cachedMessages.length} messages in cache, showing first`, cachedMessages);
-        const pinnedMsg = cachedMessages.find(m => m.pin);
-        let allCached = cachedMessages;
-        try {
-          const count = await window.messageDb.getMessageCount(chatId);
-          allCached = await window.messageDb.getMessages(chatId, count, 0) || cachedMessages;
-        } catch (_) {}
-        cacheData = {
-          messages: cachedMessages,
-          pinnedMessage: pinnedMsg || null,
-          mediaDerived: deriveMedia(allCached),
-          hasMore: cachedMessages.length >= visibleMessages,
-          isFromCache: true,
-        };
-      }
-    } catch (e) {
-      console.error('Failed to read cache:', e);
-    }
+  abortRef.current = false;
+  setData(null);
+  setIsLoading(true);
+  setError(null);
 
-    // 2️⃣ If cache has data → show and done
-    if (cacheData) {
-      setData(cacheData);
+  // 1️⃣ Try API first
+  try {
+    console.log('🌐 Fetching from API first...');
+    const apiResult = await fetchFromApi();
+
+    if (!abortRef.current && apiResult) {
+      const { mediaDerived: _omit, ...apiData } = apiResult;
+      setData(apiData);
       setIsLoading(false);
-      return;
+      return; // ✅ Success → stop here
     }
+  } catch (apiError) {
+    console.warn('⚠️ API fetch failed, trying cache...', apiError);
+  }
 
-    // 3️⃣ Fallback to API when cache empty or failed (no mediaDerived here — only from cache)
-    try {
-      console.log('🌐 No cache, fetching from API...');
-      const apiResult = await fetchFromApi();
+  // 2️⃣ Fallback to cache if API failed or returned nothing
+  try {
+    const cachedMessages = window.messageDb
+      ? await window.messageDb.getMessages(chatId, visibleMessages).catch(() => [])
+      : [];
+
+    if (cachedMessages?.length > 0) {
+      console.log(`✅ Found ${cachedMessages.length} messages in cache`, cachedMessages);
+
+      const pinnedMsg = cachedMessages.find(m => m.pin);
+
+      let allCached = cachedMessages;
+      try {
+        const count = await window.messageDb.getMessageCount(chatId);
+        allCached =
+          (await window.messageDb.getMessages(chatId, count, 0)) || cachedMessages;
+      } catch (_) {}
+
+      const cacheData = {
+        messages: cachedMessages,
+        pinnedMessage: pinnedMsg || null,
+        mediaDerived: deriveMedia(allCached),
+        hasMore: cachedMessages.length >= visibleMessages,
+        isFromCache: true,
+      };
+
       if (!abortRef.current) {
-        const { mediaDerived: _omit, ...apiData } = apiResult;
-        setData(apiData);
+        setData(cacheData);
       }
-    } catch (apiError) {
+    } else {
+      // No cache either
       if (!abortRef.current) {
-        setError(apiError);
         setData(null);
-        console.error('❌ API fetch failed:', apiError);
       }
-    } finally {
-      if (!abortRef.current) setIsLoading(false);
     }
-  }, [chatId, visibleMessages, fetchFromApi]);
+  } catch (cacheError) {
+    console.error('❌ Cache fallback failed:', cacheError);
+    if (!abortRef.current) {
+      setError(cacheError);
+      setData(null);
+    }
+  } finally {
+    if (!abortRef.current) setIsLoading(false);
+  }
+}, [chatId, visibleMessages, fetchFromApi]);
 
   // Run only on chat enter (chatId change), NOT when loadMessages identity changes.
   // Otherwise loadMessages would re-run (e.g. after load more) and overwrite messages.
