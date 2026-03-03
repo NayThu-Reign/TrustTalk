@@ -47,13 +47,13 @@ function createWindow() {
     },
   });
 
-  Menu.setApplicationMenu(null);
+  // Menu.setApplicationMenu(null);
 
-  mainWindow.loadFile(
-    path.join(__dirname, "..", "dist", "index.html")
-  );
+  // mainWindow.loadFile(
+  //   path.join(__dirname, "..", "dist", "index.html")
+  // );
 
-  // mainWindow.loadURL("http://localhost:5178");
+  mainWindow.loadURL("http://localhost:5178");
 
   // Open external links (e.g. from Linkify) in the system browser instead of in-app
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

@@ -115,7 +115,8 @@ export default function Login() {
         fullWidth
         size="large"
         variant="contained"
-        onClick={handleSubmit}
+        type="submit"
+        // onClick={handleSubmit}
         disabled={loading}
         sx={{
           mt: 3,
