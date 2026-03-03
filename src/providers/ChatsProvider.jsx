@@ -1087,7 +1087,7 @@ case "UNPIN_MESSAGE": {
             isOptimistic: false,
             
           }
-        : msg
+        : realMessage
     ),
   };
 }
