@@ -12,6 +12,7 @@ const MessageListInner = ({
   messages,
   leftParticipants = [],
   newParticipants = [],
+  handleVisibleMessages,
   
   // Pagination
   paginationState,
@@ -275,7 +276,7 @@ const MessageListInner = ({
               sendEncryptedFileMessage={sendEncryptedFileMessage}
               handleRetryFileMessage={handleRetryFileMessage}
               handleRetryLoadMessage={handleRetryLoadMessage}
-            
+              handleVisibleMessages={handleVisibleMessages}
             />
           ))}
         </React.Fragment>

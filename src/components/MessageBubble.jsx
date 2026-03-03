@@ -46,6 +46,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { removeFromQueue, saveToQueue } from "../helper/queueHelper";
 import { ChatAudio, ChatImage, ChatVideo } from "./ChatMediaComponents";
 import MessageSync from "./MessageSync";
+import VisibilityMessages from "./VisibilityMessages";
 
 const fadeInUp = keyframes`
   from {
@@ -121,6 +122,7 @@ function MessageBubble({
     sendEncryptedMessage,
     sendEncryptedFileMessage,
     handleRetryFileMessage,
+    handleVisibleMessages
 
 }) {
     const { authUser } = useAuth();
@@ -174,6 +176,9 @@ function MessageBubble({
         (sum, [, count]) => sum + count,
         0
       );
+      
+    
+      VisibilityMessages(messageRefs, handleVisibleMessages);
       
 
 

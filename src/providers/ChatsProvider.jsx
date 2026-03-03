@@ -220,6 +220,8 @@ const ensureMessageExists = (messages, message) =>
         
       case "PIN_MESSAGE": {
   const { chatId, message, pinMessageId } = action.payload;
+
+  console.log("PIN_MESSAGE action.payload", pinMessageId);
   
   return {
     ...state,
@@ -269,7 +271,7 @@ const ensureMessageExists = (messages, message) =>
     // Update pinnedMessage if it's for the active chat
     pinnedMessage:
       chatId == activeChatIdRef.current
-        ? message
+        ? state.messages.find(m => m.id == pinMessageId)
         : state.pinnedMessage,
   };
 }
@@ -1353,6 +1355,7 @@ useEffect(() => {
 // ============================================================================
 useEffect(() => {
   if (!chatData) return;
+  if(!authUser) return;
 
   console.log('🔄 Updating chat state with:', chatData);
   

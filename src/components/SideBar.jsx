@@ -589,8 +589,9 @@ export default function SideBar() {
         if (socket?.connected) {
             socket.disconnect();
         }
-        const redirectUri = encodeURIComponent(window.location.href);
-        window.location.href = `https://sso.trustlinkmm.com/loginForm?redirect_uri=${redirectUri}`;
+        navigate(("/login"))
+        // const redirectUri = encodeURIComponent(window.location.href);
+        // window.location.href = `https://sso.trustlinkmm.com/loginForm?redirect_uri=${redirectUri}`;
     }, [logout, socket]);
 
     // ==================== Chat Actions ====================

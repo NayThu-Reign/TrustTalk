@@ -382,7 +382,7 @@ const ForwardMessageDrawer = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ forwards: forwardPayloads }),
+        body: JSON.stringify({ messages: forwardPayloads }),
       });
 
       const data = await response.json();

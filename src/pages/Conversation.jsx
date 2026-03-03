@@ -1117,7 +1117,7 @@ const visibleMessageList = useMemo(() => {
     setSelectedParticipantId(null);
   },[]);
 
-  VisibilityMessages(messageRefs, handleVisibleMessages);
+  // VisibilityMessages(messageRefs, handleVisibleMessages);
 
   const handleFileDownloadWrapper = useCallback(async (item, chatId) => {
     await handleFileDownload(item, chatId);
@@ -1350,6 +1350,7 @@ useEffect(() => {
         results: allResults,
         currentIndex: lastIndex,
       });
+
       if (allResults.length > 0 && handleScrollToMessage) {
         handleScrollToMessage(allResults[lastIndex].id);
       }
@@ -1910,8 +1911,7 @@ const {
         <title>Conversation - TrustTalk</title>
       </Helmet>
       <Box>
-
-        <Box sx={{position: "sticky"}}>
+        <Box sx={{ position: "sticky"}}>
           <ChatHeader
             chat={chat}
             isActive={isActive}
@@ -1934,6 +1934,7 @@ const {
             TimeAgo={TimeAgo}
           />
         </Box>
+
 
         <Box
           sx={{
@@ -2012,6 +2013,7 @@ const {
               messages={messages}
               leftParticipants={leftParticipants}
               newParticipants={newParticipants}
+              handleVisibleMessages={handleVisibleMessages}
 
               // Pagination
               paginationState={paginationState}

@@ -45,7 +45,7 @@ const styles = {
         position: "fixed",
         bottom: 0,
         padding: "5px 23px",
-        width: isMobile ? "100%" : (isChatInfo || isAddParticipant || isAddGroup || isMediaOpen) ? "56vw" : "75%",
+        width: isMobile ? "100%" : (isChatInfo || isAddParticipant || isAddGroup || isMediaOpen) ? "56vw" : "78%",
         zIndex: 1000,
         backgroundColor: "white",
     }),
