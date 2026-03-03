@@ -22,6 +22,8 @@ jobs:
 
       - run: npm install
 
+      - run: npm run build   # ✅ BUILD FRONTEND FIRST
+
       - run: npx electron-builder --publish=always
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

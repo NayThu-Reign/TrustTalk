@@ -47,7 +47,7 @@ function createWindow() {
     },
   });
 
-  // Menu.setApplicationMenu(null);
+  Menu.setApplicationMenu(null);
 
   mainWindow.loadFile(
     path.join(__dirname, "..", "dist", "index.html")
