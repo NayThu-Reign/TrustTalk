@@ -154,11 +154,31 @@ function MessageSync({ chatId, visibleMessages = 7 }) {
     const pinnedMsg = data.pinnedMessage
       ? await decryptSingleMessage(data.pinnedMessage, chatId, decryptMedia)
       : null;
-    const mediaDerived = deriveMedia(decryptedMessages);
+
+      const decryptList = async (list = []) => {
+        const result = [];
+        for (const item of list) {
+          const decrypted = await decryptSingleMessage(item, chatId, decryptMedia);
+          if (decrypted) result.push(decrypted);
+        }
+        return result;
+      };
+
+      const decryptedSharedMedias = await decryptList(data.mediaDerived?.sharedMedias);
+const decryptedMedias = await decryptList(data.mediaDerived?.medias);
+const decryptedSharedFiles = await decryptList(data.mediaDerived?.sharedFiles);
+const decryptedFiles = await decryptList(data.mediaDerived?.files);
+
+    const mediaDerived = {
+      sharedMedias: decryptedSharedMedias,
+      medias: decryptedMedias,
+      sharedFiles: decryptedSharedFiles,
+      files: decryptedFiles,
+    };
     const result = {
       messages: decryptedMessages,
       pinnedMessage: pinnedMsg,
-      mediaDerived,
+      ...mediaDerived,
       hasMore: data.hasMore,
       isFromCache: false,
     };

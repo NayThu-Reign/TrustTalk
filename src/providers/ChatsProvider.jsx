@@ -79,6 +79,20 @@ const ensureMessageExists = (messages, message) =>
   
       case "SET_CHAT":
         return { ...state, chat: action.payload };
+
+      case "SET_CHAT_DATA":
+        console.log("SET_CHAT_DATA action.payload", action.payload);
+          return {
+            ...state,
+            messages: action.payload.messages,
+            pinnedMessage: action.payload.pinnedMessage,
+    
+            sharedFiles: action.payload.sharedFiles || [],
+            files: action.payload.files || [],
+            sharedMedias: action.payload.sharedMedias || [],
+            medias: action.payload.medias || [],
+          };
+    
   
       case "RESET_CHAT":
         return {
@@ -99,10 +113,10 @@ const ensureMessageExists = (messages, message) =>
         return {
           ...state,
           messages,
-          sharedMedias: medias.slice(-3),
-          medias,
-          sharedFiles: files.slice(-5),
-          files,
+          // sharedMedias: medias.slice(-3),
+          // medias,
+          // sharedFiles: files.slice(-5),
+          // files,
         };
       }
   
@@ -1112,13 +1126,7 @@ case "PREPEND_MESSAGES": {
 
             
             
-            
-            
-            
-            
-            
-            
-            
+      
             
             
       default:

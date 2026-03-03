@@ -300,20 +300,20 @@ function updateMessagesAndScroll({
   }
 
   // Update media files
-  const allMessages = [...messages, ...uniqueDecryptedMessages];
-  dispatch({
-    type: 'SET_MEDIA_DERIVED',
-    payload: {
-      sharedMedias: allMessages
-        .filter((m) => ['image', 'gif', 'sticker'].includes(m.media_type))
-        .slice(-3),
-      medias: allMessages.filter((m) =>
-        ['image', 'gif', 'sticker'].includes(m.media_type)
-      ),
-      sharedFiles: allMessages.filter((m) => m.media_type === 'file').slice(-5),
-      files: allMessages.filter((m) => m.media_type === 'file'),
-    },
-  });
+  // const allMessages = [...messages, ...uniqueDecryptedMessages];
+  // dispatch({
+  //   type: 'SET_MEDIA_DERIVED',
+  //   payload: {
+  //     sharedMedias: allMessages
+  //       .filter((m) => ['image', 'gif', 'sticker'].includes(m.media_type))
+  //       .slice(-3),
+  //     medias: allMessages.filter((m) =>
+  //       ['image', 'gif', 'sticker'].includes(m.media_type)
+  //     ),
+  //     sharedFiles: allMessages.filter((m) => m.media_type === 'file').slice(-5),
+  //     files: allMessages.filter((m) => m.media_type === 'file'),
+  //   },
+  // });
 
   // Wait for DOM to update, then scroll
   setTimeout(() => {

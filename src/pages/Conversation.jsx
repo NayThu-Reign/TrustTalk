@@ -284,11 +284,20 @@ export default function Conversation() {
     visibleMessages
   });
 
+ 
 
 useEffect(() => {
   if (!data) return;
 
   dispatch({ type: "SET_MESSAGES", payload: data.messages });
+
+  dispatch({
+    type: "SET_CHAT_DATA",
+    payload: {
+      
+      ...data, 
+    },
+  });
 
   if (data.pinnedMessage) {
     dispatch({
@@ -299,15 +308,15 @@ useEffect(() => {
     dispatch({ type: "CLEAR_PINNED_MESSAGE" });
   }
 
-  dispatch({
-    type: "SET_MEDIA_DERIVED",
-    payload: data.mediaDerived ?? {
-      sharedMedias: [],
-      medias: [],
-      sharedFiles: [],
-      files: [],
-    },
-  });
+  // dispatch({
+  //   type: "SET_MEDIA_DERIVED",
+  //   payload: data.mediaDerived ?? {
+  //     sharedMedias: [],
+  //     medias: [],
+  //     sharedFiles: [],
+  //     files: [],
+  //   },
+  // });
 
   if (data.hasMore !== undefined) {
     updatePaginationState({ hasMore: data.hasMore, page: 1 });

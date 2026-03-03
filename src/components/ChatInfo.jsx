@@ -53,8 +53,7 @@ export default function ChatInfo({
     closeFullscreen,
     formatDate,
     isMobileOrTablet,
-    sharedMedias,
-    sharedFiles,
+   
     handleOpenProfileDrawer,
     handleCloseProfileDrawer,
     profileDrawerOpen,
@@ -73,18 +72,20 @@ export default function ChatInfo({
     handleMouseFileLeave,
     hoveredFileId,
     updateHoverState,
-    medias,
-    files,
+    
     groupedFiles,
     }) {
         
-       const { onlineUsers } = useChats();
+       const { onlineUsers, sharedMedias, sharedFiles, medias, files } = useChats();
     const { authUser } = useAuth();
+
+    console.log("sharedMedias", sharedMedias);
     
+
     // Internal view state
     const [currentView, setCurrentView] = useState('info'); // 'info', 'media', 'files'
     
-    const latestMedias = sharedMedias.slice(-3); 
+    const latestMedias = sharedMedias; 
     const isAdmin = chat?.ownerAdmins?.some(a => a.user_code === authUser.user_code);
     const isParticipant = chat?.participants?.some(p => p.user_code === authUser.user_code);
 
