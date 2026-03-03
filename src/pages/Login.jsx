@@ -72,6 +72,8 @@ export default function Login() {
   >
     {/* LEFT – LOGIN CARD */}
     <Card
+      component="form"
+      onSubmit={handleSubmit}
       elevation={0}
       sx={{
         p: 5,
