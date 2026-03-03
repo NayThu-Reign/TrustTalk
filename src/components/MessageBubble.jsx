@@ -581,7 +581,7 @@ function MessageBubble({
                                     <PollDemo pollData={item.Poll} chatId={chat?.id} isParticipant={isParticipant} />
                                 ) : (
                                     <Typography variant="body1" sx={{ color: "#8E8E93" }}>
-                                        {item.deleted_by_user_id === authUser.user_code ? 'You deleted a message' : `${item.deletedByUser} deleted a message`}
+                                        {item.deleted_by_user_id === authUser.user_code ? 'You deleted a message' : `${item.deletedByUser?.username} deleted a message`}
                                     </Typography>
                                 )}
 
