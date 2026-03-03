@@ -74,6 +74,7 @@ const MessageListInner = ({
   sendEncryptedMessage,
   sendEncryptedFileMessage,
   handleRetryFileMessage,
+  handleRetryLoadMessage,
   
   // Utilities
   formatTime,
@@ -273,6 +274,7 @@ const MessageListInner = ({
               sendEncryptedMessage={sendEncryptedMessage}
               sendEncryptedFileMessage={sendEncryptedFileMessage}
               handleRetryFileMessage={handleRetryFileMessage}
+              handleRetryLoadMessage={handleRetryLoadMessage}
             
             />
           ))}

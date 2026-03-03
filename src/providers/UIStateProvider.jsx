@@ -11,6 +11,7 @@ export default function UIStateProvider({ children }) {
 	const [ isGroupChatOpen, setIsGroupChatOpen ] = useState(false);
 	const [ isReactionDrawerOpen, setIsReactionDrawerOpen ] = useState(false);
 	const [ activeChatId, setActiveChatId ] = useState(null);
+	const [ drafts, setDrafts ] = useState({});
 	
 	return (
 		<UIStateContext.Provider
@@ -21,6 +22,8 @@ export default function UIStateProvider({ children }) {
 				setIsReactionDrawerOpen,
 				activeChatId,
 				setActiveChatId,
+				drafts,
+				setDrafts,
 			}}
 		>
 			{children}

@@ -15,10 +15,19 @@ export function isBase64DataUrl(str) {
  * @param {Object} props.item - Message item containing decryptedUrl
  * @param {Function} props.openFullscreen - Callback to open image in fullscreen
  */
-export const ChatImage = React.memo(({ item, openFullscreen }) => {
+export const ChatImage = React.memo(({ item, openFullscreen, fetchMessage }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const imageSrc = item.decryptedUrl;
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    setError(false);
+    setLoaded(false);
+    await fetchMessage(item.id);
+    setRetrying(false);
+  };
 
   return (
     <div style={{ position: "relative", minHeight: "200px" }}>
@@ -41,10 +50,50 @@ export const ChatImage = React.memo(({ item, openFullscreen }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            color: "red",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
-          Failed to load image
+          <span style={{ color: "red", fontSize: "13px" }}>Failed to load image</span>
+          <button
+            onClick={handleRetry}
+            disabled={retrying}
+            style={{
+              background: "none",
+              border: "1px solid #ccc",
+              borderRadius: "50%",
+              width: "36px",
+              height: "36px",
+              cursor: retrying ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: retrying ? 0.5 : 1,
+              transition: "opacity 0.2s",
+            }}
+            title="Retry"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                animation: retrying ? "spin 1s linear infinite" : "none",
+              }}
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
         </div>
       )}
       {imageSrc && (
@@ -63,6 +112,12 @@ export const ChatImage = React.memo(({ item, openFullscreen }) => {
           alt="Chat media"
         />
       )}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 });

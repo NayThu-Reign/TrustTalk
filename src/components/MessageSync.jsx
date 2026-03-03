@@ -455,11 +455,86 @@ function MessageSync({ chatId, visibleMessages = 7 }) {
       };
     }, []);
 
+  // Fetch a single message by id, decrypt it, replace in cache and state
+  const fetchMessage = useCallback(async (messageId) => {
+    if (!messageId || !chatId || !token) return;
+
+    try {
+      console.log(`🔄 Fetching single message ${messageId}...`);
+      const res = await fetchWithAuth(
+        `${api}/api/chats/${chatId}/messages/${messageId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const json = await res.json();
+      if (json.status !== 1 || !json.message) {
+        console.error('❌ Failed to fetch single message:', json);
+        return;
+      }
+
+      const decrypted = await decryptSingleMessage(json.message, chatId, decryptMedia);
+      if (!decrypted) {
+        console.error('❌ Failed to decrypt single message');
+        return;
+      }
+
+      console.log(`✅ Single message fetched and decrypted:`, decrypted);
+
+      // Update cache
+      if (window.messageDb) {
+        try {
+          await window.messageDb.insertMessages([{
+            id: decrypted.id, chat_id: chatId,
+            sender_id: decrypted.sender_id || decrypted.sender?.user_code,
+            recipient_id: decrypted.recipient_id || null,
+            text_content: decrypted.text_content || null,
+            media_url: decrypted.media_url || null,
+            media_type: decrypted.media_type || null,
+            pin: decrypted.pin || false,
+            viewed_by: decrypted.viewed_by || [], read: decrypted.read || false,
+            reply_to: decrypted.reply_to || null, edited: decrypted.edited || false,
+            deleted_by: decrypted.deleted_by || null,
+            is_deleted_for_everyone: decrypted.is_deleted_for_everyone || false,
+            deleted_by_user_id: decrypted.deleted_by_user_id || null,
+            forwarded_from: decrypted.forwarded_from || null,
+            mentions: decrypted.mentions || [],
+            ciphertext: decrypted.ciphertext || null, nonce: decrypted.nonce || null,
+            sender_public_key: decrypted.sender_public_key || null,
+            key_version: decrypted.key_version || 1,
+            created_at: decrypted.createdAt, updated_at: decrypted.updatedAt || decrypted.createdAt,
+            decryptedUrl: decrypted.decryptedUrl || null,
+            sender: decrypted.sender || null,
+            originalMessage: decrypted.originalMessage || null,
+            reactions: decrypted.reactions || [], Poll: decrypted.Poll || null,
+          }]);
+          console.log(`✅ Cache updated for message ${messageId}`);
+        } catch (err) {
+          console.error('Failed to update cache for single message:', err);
+        }
+      }
+
+      // Replace message in state
+      setData(prev => {
+        if (!prev) return prev;
+        const updatedMessages = prev.messages.map(m =>
+          m.id === messageId ? decrypted : m
+        );
+        return {
+          ...prev,
+          messages: updatedMessages,
+          mediaDerived: deriveMedia(updatedMessages),
+        };
+      });
+    } catch (err) {
+      console.error(`❌ fetchMessage(${messageId}) failed:`, err);
+    }
+  }, [chatId, token, decryptMedia]);
+
     return {
         data,
         isLoading,
         error,
         refetch: loadMessages,
+        fetchMessage,
         isFromCache: data?.isFromCache || false,
         isOffline: !!error && !data,
         isBackgroundFetching,

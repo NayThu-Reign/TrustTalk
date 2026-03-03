@@ -155,9 +155,12 @@ export default function Conversation() {
 
   const decryptedId = decryptId(decodeURIComponent(id));
 
-  const [textContent, setTextContent] = useState("");
+  // Per-chat text drafts keyed by chat id (shared via UIState)
+  const [textContent, setTextContentState] = useState("");
   const isLoadingMoreRef = useRef(false);
 
+  const { activeChatId, setActiveChatId, drafts, setDrafts } = useUIState();
+  
   const {
     chat,
     decryptMedia,
@@ -192,6 +195,41 @@ export default function Conversation() {
   const scrollState = convState.scroll;
   const searchState = convState.search;
   const paginationState = convState.pagination;
+
+  const setTextContent = useCallback(
+    (value) => {
+      setTextContentState(value);
+      if (!decryptedId) return;
+      setDrafts((prev) => ({
+        ...prev,
+        [decryptedId]: value,
+      }));
+    },
+    [decryptedId],
+  );
+
+  // Keep text drafts per chat so switching chats restores their own text
+ 
+
+  // When chat changes, load its draft (or empty)
+  useEffect(() => {
+    if (!decryptedId) return;
+    setTextContentState((prev) => {
+      const existing = drafts[decryptedId];
+      return typeof existing === "string" ? existing : "";
+    });
+  }, [decryptedId, drafts]);
+
+  const clearCurrentDraft = useCallback(() => {
+    if (decryptedId) {
+      setDrafts((prev) => {
+        const next = { ...prev };
+        delete next[decryptedId];
+        return next;
+      });
+    }
+    setTextContentState("");
+  }, [decryptedId]);
 
   const updateUIState = useCallback((updates) => {
     dispatchConv({ type: "ui", payload: updates });
@@ -229,7 +267,6 @@ export default function Conversation() {
   const [open, setOpen] = useState(false);
   const [pinnedMessageId, setPinnedMessageId] = useState(null);
   const [copiedMessage, setCopiedMessage] = useState(null);
-  const { activeChatId, setActiveChatId } = useUIState();
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const isFirstLoadRef = useRef(true);
   const visibleMessages = 7;
@@ -238,6 +275,7 @@ export default function Conversation() {
     if (type !== "c") return;
     setActiveChatId(decryptedId);
     setChatId(decryptedId);
+    setMessageOverrides({});
     updateScrollState({shouldScrollToBottom: true});
   }, [decryptedId,updateScrollState,type]);
 
@@ -594,6 +632,40 @@ const showScrollDownRef = useRef(false);
 }
 
 
+  // Local overrides for messages that were re-fetched via retry
+  const [messageOverrides, setMessageOverrides] = useState({});
+
+  // 🔄 Retry loading a failed/broken media message by re-fetching from the API,
+  // re-decrypting, updating the local override map, and refreshing the SQLite cache.
+  const handleRetryLoadMessage = useCallback(async (messageId) => {
+    try {
+      const res = await fetchWithAuth(`${api}/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const freshMsg = data.message ?? data; // adapt to API envelope shape
+
+      // Decrypt the freshly-fetched message
+      const decrypted = await decryptMessage(freshMsg, chatId);
+
+      // 1️⃣ Replace in local override map so the list re-renders immediately
+      setMessageOverrides((prev) => ({ ...prev, [decrypted.id]: decrypted }));
+
+      // 2️⃣ Persist into SQLite cache (INSERT OR REPLACE)
+      if (window.messageDb) {
+        await window.messageDb.insertMessage(decrypted);
+      }
+
+      return decrypted;
+    } catch (err) {
+      console.error("❌ handleRetryLoadMessage failed:", err);
+      throw err;
+    }
+  }, [api, token, chatId, decryptMessage]);
+
   const loadMoreMessages = useCallback(async () => {
   if (!paginationState.hasMore || paginationState.loadingMessages) return;
 
@@ -734,7 +806,11 @@ const scrollToMessage = (messageId) => {
     }
   };
 
-const visibleMessageList = messages ?? [];
+const visibleMessageList = useMemo(() => {
+  const base = messages ?? [];
+  if (!Object.keys(messageOverrides).length) return base;
+  return base.map((m) => messageOverrides[m.id] ?? m);
+}, [messages, messageOverrides]);
 
   const editMessage = useCallback(async (event) => {
     if (event) event.preventDefault(); // Prevent default if called with an event
@@ -791,7 +867,7 @@ const visibleMessageList = messages ?? [];
         console.log("Emitting editedMessage event with:", response);
 
         textContentRef.current.value = "";
-        setTextContent("");
+        clearCurrentDraft();
 
         if (messageState.edited) {
           updateMessageState({
@@ -806,7 +882,7 @@ const visibleMessageList = messages ?? [];
       console.error(error);
       // Handle error appropriately
     }
-  }, [textContent, chat, messageState.edited, token, updateMessageState, setTextContent]);
+  }, [textContent, chat, messageState.edited, token, updateMessageState, clearCurrentDraft]);
 
   const closePicker = () => {
     setMediaUrl(null);
@@ -1723,7 +1799,7 @@ const {
       });
 
       // 🔹 Clear input immediately (Messenger behavior)
-      setTextContent("");
+      clearCurrentDraft();
       setMediaType(null);
       setMediaUrl(null);
       setMediaGif(null);
@@ -1750,7 +1826,7 @@ const {
       if (response.status === 201) {
         console.log("✅ Message sent successfully", data);
         //   textContentRef.current.value = "";
-        setTextContent("");
+        clearCurrentDraft();
         setMediaType(null);
         setMediaUrl(null);
         setMediaGif(null);
@@ -1989,6 +2065,7 @@ const {
               sendEncryptedMessage={sendEncryptedMessage}
               sendEncryptedFileMessage={sendEncryptedFileMessage}
               handleRetryFileMessage={handleRetryFileMessage}
+              handleRetryLoadMessage={handleRetryLoadMessage}
               // Utilities
               formatTime={formatTime}
               MentionText={MentionText}

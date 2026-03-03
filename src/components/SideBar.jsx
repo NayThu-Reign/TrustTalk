@@ -169,6 +169,7 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
         onlineUsers,
         decryptedId,
         api,
+        drafts,
     } = data;
 
     const touchTimeoutRef = useRef(null);
@@ -187,6 +188,8 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
     }, []);
 
     const lastMessage = chat?.lastDecryptedMessage;
+    const draftText = drafts?.[chat.id];
+    const hasDraft = typeof draftText === "string" && draftText.trim() !== "";
 
     // Memoize participant and seen status calculation
     const { participant, isSeen } = useMemo(() => {
@@ -350,12 +353,14 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
                             fontWeight: (lastMessage?.sender_id !== authUser?.user_code &&
                                 !lastMessage?.viewed_by?.includes(authUser?.user_code)) ? 600 : 400,
                             color: (lastMessage?.sender_id !== authUser?.user_code &&
-                                !lastMessage?.viewed_by?.includes(authUser?.user_code)) ? "#000" : "#3C3C4399"
+                                !lastMessage?.viewed_by?.includes(authUser?.user_code)) ? "#000" : hasDraft && chat.id != decryptedId ? "red" : "#3C3C4399"
                         }}
                     >
-                        {lastMessage && (lastMessage?.sender_id === authUser?.user_code
-                            ? `You: ${lastMessage?.text_content || lastMessage?.media_type || "deleted message"}`
-                            : lastMessage?.text_content || lastMessage?.media_type || `${lastMessage?.sender?.userfullname || lastMessage?.sender?.username} deleted a message`)}
+                        {hasDraft && chat.id != decryptedId
+    ? `Draft: ${draftText}`
+    : lastMessage && (lastMessage?.sender_id === authUser?.user_code
+        ? `You: ${lastMessage?.text_content || lastMessage?.media_type || "deleted message"}`
+        : lastMessage?.text_content || lastMessage?.media_type || `${lastMessage?.sender?.userfullname || lastMessage?.sender?.username} deleted a message`)}
                     </Typography>
 
                     {lastMessage?.sender_id === authUser?.user_code && (
@@ -423,7 +428,8 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
         prevChat?.lastDecryptedMessage?.id === nextChat?.lastDecryptedMessage?.id &&
         prevChat?.lastDecryptedMessage?.viewed_by?.length === nextChat?.lastDecryptedMessage?.viewed_by?.length &&
         prevProps.data.decryptedId === nextProps.data.decryptedId &&
-        prevProps.data.onlineUsers?.length === nextProps.data.onlineUsers?.length
+        prevProps.data.onlineUsers?.length === nextProps.data.onlineUsers?.length &&
+        prevProps.data.drafts?.[prevChat.id] === nextProps.data.drafts?.[nextChat.id]
     );
 });
 
@@ -444,6 +450,7 @@ export default function SideBar() {
         isError, 
         fetchChats 
     } = useChats();
+    const { drafts } = useUIState();
     
     const { type, id } = useParams();
     const decryptedId = id ? decryptId(decodeURIComponent(id)) : null;
@@ -765,6 +772,7 @@ export default function SideBar() {
         onlineUsers,
         decryptedId,
         api,
+        drafts,
     }), [
         filteredChats,
         authUser,
@@ -779,6 +787,7 @@ export default function SideBar() {
         onlineUsers,
         decryptedId,
         api,
+        drafts,
     ]);
 
     // ==================== Loading/Error States ====================

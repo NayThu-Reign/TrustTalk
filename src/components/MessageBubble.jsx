@@ -45,6 +45,7 @@ import PollDemo from "./PollDemo";
 import { useAuth } from "../providers/AuthProvider";
 import { removeFromQueue, saveToQueue } from "../helper/queueHelper";
 import { ChatAudio, ChatImage, ChatVideo } from "./ChatMediaComponents";
+import MessageSync from "./MessageSync";
 
 const fadeInUp = keyframes`
   from {
@@ -128,6 +129,8 @@ function MessageBubble({
     const isJoin = item.type === "join";
     const [openViewedBy, setOpenViewedBy] = useState(false);
    
+    const chatId = chat?.id || null;
+    const { fetchMessage } = MessageSync({chatId});
     
 
 
@@ -523,7 +526,7 @@ function MessageBubble({
                                     />
                                 ) : item.media_type === 'image' ? (
                                     <Box>
-                                        <ChatImage item={item} openFullscreen={openFullscreen} />
+                                        <ChatImage item={item} openFullscreen={openFullscreen} fetchMessage={fetchMessage}/>
                                     </Box>
                                 ) : item.media_type === 'file' ? (
                                     <Box
