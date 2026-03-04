@@ -33,6 +33,9 @@
     "linux": {
       "icon": "assets/splash_logo_tl2.png"
     },
+    "mac": {
+      "icon": "src/assets/splash.icns"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true

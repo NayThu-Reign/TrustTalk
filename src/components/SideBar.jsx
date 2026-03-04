@@ -272,6 +272,7 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
             sx={{
                 paddingTop: "10px",
                 width: "100%",
+                minHeight: "60px",
                 display: "flex",
                 marginBottom: "8px",
                 cursor: "pointer",
