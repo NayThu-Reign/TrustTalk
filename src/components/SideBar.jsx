@@ -25,6 +25,7 @@ import {
 } from "@mui/icons-material";
 
 import CompanyLogo from "../assets/splash_logo_tl2.png";
+import SplashImage from "../assets/splash.webp";
 import React, { useCallback, useState, useMemo, useRef, Suspense, lazy, useEffect } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -964,7 +965,7 @@ export default function SideBar() {
                                         src={
                                             user?.user_photo
                                                 ? (user.user_photo.startsWith('data:') ? user.user_photo : `${api}/${user.user_photo}`)
-                                                : '../assets/splash.webp'
+                                                : SplashImage
                                         }
                                         alt={user?.username || "Username"}
                                         sx={{
@@ -1167,7 +1168,7 @@ export default function SideBar() {
                             src={
                                 authUser?.user_photo
                                     ? (authUser.user_photo.startsWith('data:') ? authUser.user_photo : `${api}/${authUser.user_photo}`)
-                                    : '../assets/splash.webp'
+                                    : SplashImage
                             }
                             alt={authUser?.username || "username"}
                             sx={{ width: "44px", height: "44px", background: "#D9D9D9" }}
@@ -1187,7 +1188,7 @@ export default function SideBar() {
                     </Box>
                 ) : (
                     <Avatar
-                        src={authUser?.user_photo ? `${api}/${authUser.user_photo}` : '../assets/splash.webp'}
+                        src={authUser?.user_photo ? `${api}/${authUser.user_photo}` : SplashImage}
                         alt={authUser?.username || "username"}
                         sx={{ width: "44px", height: "44px", background: "#D9D9D9" }}
                     />
