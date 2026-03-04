@@ -93,7 +93,16 @@ const ensureMessageExists = (messages, message) =>
             medias: action.payload.medias || [],
           };
     
-  
+          
+      case "UPDATE_CHAT_MUTED_BY":
+            return {
+              ...state,
+              chat: {
+                ...state.chat,
+                muted_by: action.payload
+              }
+      };
+
       case "RESET_CHAT":
         return {
           ...state,
@@ -105,6 +114,25 @@ const ensureMessageExists = (messages, message) =>
           medias: [],
           pinnedMessage: null,
         };
+      case "RESET_MESSAGES":
+        return {
+          ...state,
+          
+          messages: [],
+          pinnedMessage: null,
+        };
+
+        case "UPDATE_CHAT_INFO": {
+          const { chatId, name } = action.payload;
+          return {
+              ...state,
+              chats: state.chats.map(chat =>
+                  chat.id == chatId ? { ...chat, name } : chat
+              ),
+              // update active chat too if open
+              ...(activeChatIdRef.current == chatId ? { chat: { ...state.chat, name } } : {}),
+          };
+      }
   
       case "SET_MESSAGES": {
         const messages = action.payload ?? [];
@@ -130,7 +158,7 @@ const ensureMessageExists = (messages, message) =>
         return {
           ...state,
           messages: state.messages.map((m) =>
-            m.id === action.payload.messageId
+            m.id == action.payload.messageId
               ? {
                   ...m,
                   text_content: null,
@@ -338,7 +366,7 @@ case "UNPIN_MESSAGE": {
             case "MESSAGE_DELETED": {
               const { chatId, messageId, meta } = action.payload;
 
-              console.log("chatId", chatId);
+              console.log("messageId24", messageId);
             
               return {
                 ...state,
@@ -1063,12 +1091,26 @@ case "UNPIN_MESSAGE": {
 
             case "DELETE_MESSAGE_FOR_SELF": {
               const { chatId, messageId } = action.payload;
-              
-              if(activeChatIdRef.current != chatId) return;
-
+            
               return {
                 ...state,
-                messages: state.messages.filter(msg => msg.id !== messageId),
+            
+                chats: state.chats.map(chat => {
+                  if (chat.id != chatId) return chat;
+            
+                  return {
+                    ...chat,
+                    lastDecryptedMessage:
+                      chat.lastDecryptedMessage?.id == messageId
+                        ? { ...chat.lastDecryptedMessage, text_content: null, media_url: null, media_type: null }
+                        : chat.lastDecryptedMessage,
+                  };
+                }),
+            
+                messages:
+                  activeChatIdRef.current == chatId
+                    ? state.messages.filter(msg => msg.id !== messageId)
+                    : state.messages,
               };
             }
 
@@ -2672,6 +2714,13 @@ if (message.media_type) {
           user: leftParticipant,
           message,
         },
+      });
+    });
+
+    socket.on("groupChatUpdated", ({ chatId, name }) => {
+      dispatch({
+          type: "UPDATE_CHAT_INFO",
+          payload: { chatId, name },
       });
     });
     

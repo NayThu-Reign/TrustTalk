@@ -428,6 +428,8 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
         prevChat?.id === nextChat?.id &&
         prevChat?.lastDecryptedMessage?.id === nextChat?.lastDecryptedMessage?.id &&
         prevChat?.lastDecryptedMessage?.viewed_by?.length === nextChat?.lastDecryptedMessage?.viewed_by?.length &&
+        +   prevChat?.lastDecryptedMessage?.text_content === nextChat?.lastDecryptedMessage?.text_content &&
++   prevChat?.lastDecryptedMessage?.media_url === nextChat?.lastDecryptedMessage?.media_url &&
         prevProps.data.decryptedId === nextProps.data.decryptedId &&
         prevProps.data.onlineUsers?.length === nextProps.data.onlineUsers?.length &&
         prevProps.data.drafts?.[prevChat.id] === nextProps.data.drafts?.[nextChat.id]
@@ -449,7 +451,8 @@ export default function SideBar() {
         setMutedChat, 
         isLoading, 
         isError, 
-        fetchChats 
+        fetchChats,
+        
     } = useChats();
     const { drafts } = useUIState();
     
@@ -498,10 +501,13 @@ export default function SideBar() {
 
     // ==================== Navigation Handlers ====================
     const handleChatClick = useCallback((chatId, isGroupChat) => {
+
         if (rightClickRef.current) {
             rightClickRef.current = false;
             return;
         }
+            // dispatch({ type: "RESET_MESSAGES" });
+
         const encryptedId = encodeURIComponent(encryptId(chatId));
         navigate(`/conversation/c/${encryptedId}`);
     }, [navigate]);
@@ -523,6 +529,7 @@ export default function SideBar() {
             anchorEl: null,
             selectedChatId: null,
         });
+
     }, []);
 
     // ==================== Filtered Chats (Memoized) ====================
@@ -663,6 +670,8 @@ export default function SideBar() {
         setSearchState(prev => ({ ...prev, filteredUsers: [] }));
 
         if (existingChat) {
+            dispatch({ type: "RESET_CHAT" });
+            
             const encryptedId = encodeURIComponent(encryptId(existingChat.id));
             if (newtab) {
                 window.open(`/conversation/c/${encryptedId}`, "_blank", "noopener,noreferrer");
@@ -670,6 +679,8 @@ export default function SideBar() {
                 navigate(`/conversation/c/${encryptedId}`);
             }
         } else if (existingGroupChat) {
+    dispatch({ type: "RESET_CHAT" });
+
             const encryptedId = encodeURIComponent(encryptId(existingGroupChat.id));
             if (newtab) {
                 window.open(`/conversation/c/${encryptedId}`, "_blank", "noopener,noreferrer");

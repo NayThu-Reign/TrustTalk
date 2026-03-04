@@ -200,6 +200,9 @@ export default function Conversation() {
     (value) => {
       setTextContentState(value);
       if (!decryptedId) return;
+
+      if (messageState.edited) return;
+
       setDrafts((prev) => ({
         ...prev,
         [decryptedId]: value,
@@ -277,6 +280,7 @@ export default function Conversation() {
     setChatId(decryptedId);
     setMessageOverrides({});
     updateScrollState({shouldScrollToBottom: true});
+
   }, [decryptedId,updateScrollState,type]);
 
  const { data, isLoading, error, refetch, isFromCache } = MessageSync({ 
@@ -1408,6 +1412,7 @@ const {
     handleClose,
     navigate,
     handleLeaveDialogClearClose,
+    dispatch
   });
 
    const {

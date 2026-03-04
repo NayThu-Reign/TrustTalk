@@ -1,5 +1,5 @@
 {
-  "name": "trusttalk-demo",
+  "name": "trusttalk-beta",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.trustlinkmm.trusttalk",
-    "productName": "TrustTalk-Demo",
+    "productName": "TrustTalk-Beta",
     "directories": {
       "output": "release"
     },

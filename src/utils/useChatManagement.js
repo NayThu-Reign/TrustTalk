@@ -41,6 +41,7 @@ export function useChatManagement({
   handleClose,
   navigate,
   handleLeaveDialogClearClose,
+  dispatch
 }) {
   /**
    * Handle delete message for everyone
@@ -189,9 +190,13 @@ export function useChatManagement({
           const data = await response.json();
           console.log('Mute response:', response);
 
-          if (response.status === 201) {
-            console.log('Chat muted successfully');
-            setMutedChat(true);
+          if (response.status === 200) {
+            dispatch({
+              type: "UPDATE_CHAT_MUTED_BY",
+              payload: data.muted_by
+            });
+          
+            
           } else {
             console.log('Failed to mute chat');
           }
@@ -224,9 +229,13 @@ export function useChatManagement({
           const data = await response.json();
           console.log('Unmute response:', data);
 
-          if (response.status === 201) {
-            console.log('Chat unmuted successfully');
-            setMutedChat(false);
+          if (response.status === 200) {
+            dispatch({
+              type: "UPDATE_CHAT_MUTED_BY",
+              payload: data.muted_by
+            });
+          
+          
           } else {
             console.log('Failed to unmute chat');
           }
@@ -248,7 +257,7 @@ export function useChatManagement({
           ? selectedParticipantId
           : [selectedParticipantId];
 
-        const res = await fetch(`${api}/api/chats/${id}/remove-users`, {
+        const res = await fetch(`${api}/api/chats/${decryptedId}/remove-users`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -285,7 +294,7 @@ export function useChatManagement({
         const userIds = participantId;
         console.log('Giving admin to participant:', userIds);
 
-        const res = await fetchWithAuth(`${api}/api/chats/${id}/give-admin`, {
+        const res = await fetchWithAuth(`${api}/api/chats/${decryptedId}/give-admin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

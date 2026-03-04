@@ -26,6 +26,7 @@ const ProfileDrawer = lazy(() => import("./ProfileDrawer"));
 import { useAuth } from "../providers/AuthProvider";
 import { useChats } from "../providers/ChatsProvider";
 import LongPress from "./LongPress";
+import { fetchWithAuth } from "../hooks/fetchWithAuth";
 
 
 export default function ChatInfo({ 
@@ -80,6 +81,37 @@ export default function ChatInfo({
     const { authUser } = useAuth();
 
     console.log("sharedMedias", sharedMedias);
+
+    const [drawerParticipant, setDrawerParticipant] = useState(null);
+
+    const [isEditingName, setIsEditingName] = useState(false);
+const [editedName, setEditedName] = useState("");
+
+const handleEditIconClick = () => {
+    setIsEditingName(true);
+    setEditedName(chat?.name || "");
+};
+
+const handleSaveName = async () => {
+    if (!editedName.trim() || editedName === chat?.name) {
+        setIsEditingName(false);
+        return;
+    }
+    try {
+        const token = localStorage.getItem("token");
+        await fetchWithAuth(`${api}/api/chat/${chat.id}/updateName`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ name: editedName.trim() }),
+        });
+        setIsEditingName(false);
+    } catch (err) {
+        console.error("Failed to update group name", err);
+    }
+};
     
 
     // Internal view state
@@ -597,179 +629,142 @@ export default function ChatInfo({
                                         )
                                             )} */}
 
-                                            {chat && chat?.is_group_chat && (
-                                        chat.photo ? (
-                                            // Display chat photo if available
-                                            <Box>
-                                                <Box sx={{display: "flex", alignItems: "center", gap: "5px"}}>
-                                                    <Avatar
-                                                        src={`${api}/${chat.photo}`}
-                                                        onClick={() => openFullscreen(`${api}/${chat.photo}`)}
-                                                        sx={{
-                                                            marginTop: "8px",
-                                                            width: "64px",
-                                                            height: "64px",
-                                                            background: "#D9D9D9",
-                                                        }}
-                                                    />
-                                                    {chat && chat?.is_group_chat && isAdmin && isParticipant && (
-                                                <IconButton onClick={triggerFileInput}>
-                                                    <EditIcon />
-                                                </IconButton>
-                                            )}
-                                            <input 
-                                                    ref={fileInputRef}
-                                                    type="file" 
-                                                    style={{ display: 'none'}}
-                                                    onChange={handleFileChange}
-                                        
-                                                />
-                                                </Box>
-                                                <Typography
-                                                sx={{
-                                                    fontSize: "16px",
-                                                    fontWeight: "500",
-                                                    color: "#000000",
-                                                    textAlign: "center",
-                                                }}
                                             
-                                            >
-                                                {chat?.name}
-                                            </Typography>
 
-                                                
-                                                {fullscreenImage && (
-                                                    <div
-                                                                                    onClick={closeFullscreen}
-                                                                                    style={{
-                                                                                        position: 'fixed',
-                                                                                        top: 0,
-                                                                                        left: 0,
-                                                                                        width: '100%',
-                                                                                        height: '100%',
-                                                                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        justifyContent: 'center',
-                                                                                        zIndex: 1500, // Ensures the overlay is above other content
-                                                                                        cursor: 'zoom-out', // Indicates that clicking will zoom out
-                                                                                    }}
-                                                                                >
-                                                                                    <img
-                                                                                        src={fullscreenImage}
-                                                                                        alt="Full-size"
-                                                                                        style={{
-                                                                                            maxWidth: '90%',
-                                                                                            maxHeight: '90%',
-                                                                                            borderRadius: '8px',
-                                                                                        }}
-                                                                                    />
-                                                    </div>
-                                                )}
-                                                
-                                            </Box>
-                                        ) : (
-                                            <Box>
-                                            <Box sx={{display: "flex", alignItems: "center", gap: "5px"}}>
-                                            <Avatar
-                                                onClick={triggerFileInput}
-                                                sx={{
-                                                    marginTop: "8px",
-                                                    width: "64px",
-                                                    height: "64px",
-                                                    position: 'relative',
-                                                    background: "#D9D9D9",
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                }}
-                                            >
-                                                <Box
-                                                    sx={{
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        position: 'relative',
-                                                    }}
-                                                >
-                                                    {chat.participants.slice(0, 4).map((participant, index, array) => (
-                                                        participant.user_photo ? (
-                                                            <Box
-                                                                key={index}
-                                                                component="img"
-                                                                src={`${api}/${participant.user_photo}`}
-                                                                sx={{
-                                                                    position: 'absolute',
-                                                                    width: array.length === 1 ? '100%' :
-                                                                        array.length === 2 ? '50%' : '50%',
-                                                                    height: array.length === 1 ? '100%' :
-                                                                            array.length === 2 ? '100%' : '50%',
-                                                                    objectFit: 'cover',
-                                                                    borderRadius: '50%',
-                                                                    top: array.length === 1 ? '0%' : index < 2 ? '0%' : '50%',
-                                                                    left: array.length === 1 ? '0%' : index % 2 === 0 ? '0%' : '50%',
-                                                                    border: '1px solid #fff', // Border for better visuals
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <Box
-                                                                key={index}
-                                                                sx={{
-                                                                    position: 'absolute',
-                                                                    width: array.length === 1 ? '100%' :
-                                                                        array.length === 2 ? '50%' : '50%',
-                                                                    height: array.length === 1 ? '100%' :
-                                                                        array.length === 2 ? '100%' : '50%',
-                                                                    display: 'flex',
-                                                                    justifyContent: 'center',
-                                                                    alignItems: 'center',
-                                                                    background: '#BDBDBD',
-                                                                    color: '#fff',
-                                                                    fontSize: array.length === 1 ? '14px' : '10px',
-                                                                    fontWeight: 'bold',
-                                                                    borderRadius: '50%',
-                                                                    top: array.length === 1 ? '0%' : index < 2 ? '0%' : '50%',
-                                                                    left: array.length === 1 ? '0%' : index % 2 === 0 ? '0%' : '50%',
-                                                                    border: '1px solid #fff', // Border for better visuals
-                                                                }}
-                                                            >
-                                                                {participant.username.charAt(0).toUpperCase()}
-                                                            </Box>
-                                                        )
-                                                    ))}
-                                                    
-                                                </Box>
-                                                    
-                                                
-                                            </Avatar>
-                                            {chat && chat?.is_group_chat && isAdmin && isParticipant && (
-                                                <IconButton onClick={triggerFileInput}>
-                                                    <EditIcon />
-                                                </IconButton>
-                                            )}
-                                            <input 
-                                                    ref={fileInputRef}
-                                                    type="file" 
-                                                    style={{ display: 'none'}}
-                                                    onChange={handleFileChange}
-                                        
-                                                />
-                                            </Box>
-                                            <Typography
-                                                sx={{
-                                                    fontSize: "16px",
-                                                    fontWeight: "500",
-                                                    color: "#000000",
-                                                    textAlign: "center",
-                                                }}
+{chat && chat?.is_group_chat && (() => {
+    const NameRow = (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 1, gap: "4px" }}>
+            {isEditingName ? (
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "100%" }}>
+                    <input
+                        autoFocus
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveName();
+                            if (e.key === "Escape") setIsEditingName(false);
+                        }}
+                        style={{
+                            fontSize: "16px", fontWeight: 500,
+                            border: "1.5px solid #121660", borderRadius: "8px",
+                            padding: "6px 12px", outline: "none",
+                            width: "80%", textAlign: "center",
+                        }}
+                    />
+                    <Box sx={{ display: "flex", gap: "8px" }}>
+                        <Button size="small" variant="contained" onClick={handleSaveName}
+                            sx={{ backgroundColor: "#121660", borderRadius: "8px", textTransform: "none", px: 2 }}>
+                            Save
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={() => setIsEditingName(false)}
+                            sx={{ borderColor: "#121660", color: "#121660", borderRadius: "8px", textTransform: "none", px: 2 }}>
+                            Cancel
+                        </Button>
+                    </Box>
+                </Box>
+            ) : (
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Typography sx={{ fontSize: "16px", fontWeight: "600", color: "#000000" }}>
+                        {chat?.name}
+                    </Typography>
+                    {isAdmin && isParticipant && (
+                        <IconButton size="small" onClick={handleEditIconClick} sx={{ color: "#888", p: "2px" }}>
+                            <EditIcon sx={{ fontSize: "16px" }} />
+                        </IconButton>
+                    )}
+                </Box>
+            )}
+        </Box>
+    );
+
+    return chat.photo ? (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <Avatar
+                    src={`${api}/${chat.photo}`}
+                    onClick={() => openFullscreen(`${api}/${chat.photo}`)}
+                    sx={{ marginTop: "8px", width: "64px", height: "64px", background: "#D9D9D9" }}
+                />
+                {isAdmin && isParticipant && (
+                    <IconButton onClick={triggerFileInput} sx={{ color: "#888" }}>
+                        <EditIcon sx={{ fontSize: "18px" }} />
+                    </IconButton>
+                )}
+                <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={handleFileChange} />
+            </Box>
+
+            {NameRow}
+
+            {fullscreenImage && (
+                <div onClick={closeFullscreen} style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', zIndex: 1500, cursor: 'zoom-out',
+                }}>
+                    <img src={fullscreenImage} alt="Full-size"
+                        style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '8px' }} />
+                </div>
+            )}
+        </Box>
+    ) : (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <Avatar
+                    sx={{
+                        marginTop: "8px", width: "64px", height: "64px",
+                        position: 'relative', background: "#D9D9D9",
+                        display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    }}
+                >
+                    <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+                        {chat.participants.slice(0, 4).map((participant, index, array) => (
+                            participant.user_photo ? (
+                                <Box key={index} component="img"
+                                    src={`${api}/${participant.user_photo}`}
+                                    sx={{
+                                        position: 'absolute',
+                                        width: array.length === 1 ? '100%' : '50%',
+                                        height: array.length === 1 ? '100%' : array.length === 2 ? '100%' : '50%',
+                                        objectFit: 'cover', borderRadius: '50%',
+                                        top: array.length === 1 ? '0%' : index < 2 ? '0%' : '50%',
+                                        left: array.length === 1 ? '0%' : index % 2 === 0 ? '0%' : '50%',
+                                        border: '1px solid #fff',
+                                    }}
+                                />
+                            ) : (
+                                <Box key={index} sx={{
+                                    position: 'absolute',
+                                    width: array.length === 1 ? '100%' : '50%',
+                                    height: array.length === 1 ? '100%' : array.length === 2 ? '100%' : '50%',
+                                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                    background: '#BDBDBD', color: '#fff',
+                                    fontSize: array.length === 1 ? '14px' : '10px',
+                                    fontWeight: 'bold', borderRadius: '50%',
+                                    top: array.length === 1 ? '0%' : index < 2 ? '0%' : '50%',
+                                    left: array.length === 1 ? '0%' : index % 2 === 0 ? '0%' : '50%',
+                                    border: '1px solid #fff',
+                                }}>
+                                    {participant.username.charAt(0).toUpperCase()}
+                                </Box>
+                            )
+                        ))}
+                    </Box>
+                </Avatar>
+                {isAdmin && isParticipant && (
+                    <IconButton onClick={triggerFileInput} sx={{ color: "#888" }}>
+                        <EditIcon sx={{ fontSize: "18px" }} />
+                    </IconButton>
+                )}
+                <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={handleFileChange} />
+            </Box>
+
+            {NameRow}
+        </Box>
+    );
+})()}
+
+
                                             
-                                            >
-                                                {chat?.name}
-                                            </Typography>
-                                            </Box>
-                                            // Display participants' user_photos or fallback merged into one Avatar
-                                            
-                                        )
-                                            )} 
 
                                             
                                             
@@ -977,7 +972,7 @@ export default function ChatInfo({
                                         <Box
                                             sx={{
                                                 marginTop: "16px",
-                                                maxHeight: "600px",
+                                                minHeight: "40px",
                                                 width: "100%",
                                                 overflowY: "auto",
                                                 paddingBottom: "30px",
@@ -1010,11 +1005,7 @@ export default function ChatInfo({
                                                 // const isOnline = onlineUsers.includes(participant.user_code);
                                             const isOnline = onlineUsers.some(u => u.user_code === participant.user_code);
 
-                                              {profileDrawerOpen && (
-                                                <Suspense fallback={<div>loading...</div>} >
-                                                <ProfileDrawer openProfileDrawer={profileDrawerOpen} closeProfileDrawer={handleCloseProfileDrawer} userId={participant.user_code} recipient={participant}/>
-                                            </Suspense>
-                                            )}
+                                              
                                                    
                                                 console.log("isParticipantOnline", isOnline);
                                                return (
@@ -1107,7 +1098,7 @@ export default function ChatInfo({
                                                             height: isMobileOrTablet ? "40px" : "50px",
                                                             background: "#D9D9D9",
                                                         }} 
-                                                        onClick={handleOpenProfileDrawer}
+                                                        onClick={() => { setDrawerParticipant(participant); handleOpenProfileDrawer(); }}
 
                                                     />
                                         ) : (
@@ -1116,8 +1107,7 @@ export default function ChatInfo({
                                                     width: isMobileOrTablet ? "40px" : "50px",
                                                     height: isMobileOrTablet ? "40px" : "50px", 
                                                 }}
-                                                onClick={handleOpenProfileDrawer}
-
+                                                onClick={() => { setDrawerParticipant(participant); handleOpenProfileDrawer(); }}
                                                 
                                             >
                                             {participant?.username?.charAt(0).toUpperCase() || participant?.user?.username?.charAt(0).toUpperCase() || "?"}
@@ -1133,11 +1123,7 @@ export default function ChatInfo({
                                                     //     }}
                                                     // />
                                                    )}
-
-                                                 
-
-                                                   
-                                                    
+                                                                                                      
                                                     <Box sx={{ width: "100%", paddingLeft: "20px" }}>
                                                         <Box
                                                         sx={{
@@ -1203,7 +1189,17 @@ export default function ChatInfo({
                                                         </Typography>
                                                     </Box>
                                                     <Menu
-                                                        open={contextMenu !== null}
+                                                        open={
+                                                            contextMenu !== null &&
+                                                            (
+                                                                selectedParticipantId === authUser.user_code ||
+                                                                (
+                                                                    selectedParticipantId !== authUser.user_code &&
+                                                                    ownerAdminIds.has(authUser.user_code) &&
+                                                                    !ownerAdminIds.has(selectedParticipantId)
+                                                                )
+                                                            )
+                                                        }
                                                         onClose={handleClose}
                                                         anchorReference="anchorPosition"
                                                         anchorPosition={
@@ -1234,25 +1230,22 @@ export default function ChatInfo({
 
                                                         {/* Show "Remove Participant" if authUser is an admin and participant is not an admin */}
                                                         {selectedParticipantId !== authUser.user_code &&
-                                                            ownerAdminIds.has(authUser.user_code) &&
-                                                            !ownerAdminIds.has(selectedParticipantId) && [
-                                                                <MenuItem
-                                                                    key="remove-participant"
-                                                                    onClick={() => {
-                                                                        handleClickOpen(selectedParticipantId);
-                                                                    }}
-                                                                >
-                                                                    Remove Participant
-                                                                </MenuItem>,
-                                                                <MenuItem
-                                                                    key="give-admin"
-                                                                    onClick={() => {
-                                                                        handleGiveAdmin(selectedParticipantId);
-                                                                    }}
-                                                                >
-                                                                    Give Admin
-                                                                </MenuItem>,
-                                                        ]}
+                                                                    ownerAdminIds.has(authUser.user_code) &&
+                                                                    !ownerAdminIds.has(selectedParticipantId) && [
+                                                                        <MenuItem
+                                                                            key="remove-participant"
+                                                                            onClick={() => handleClickOpen(selectedParticipantId)}
+                                                                        >
+                                                                            Remove Participant
+                                                                        </MenuItem>,
+                                                                        <MenuItem
+                                                                            key="give-admin"
+                                                                            onClick={() => handleGiveAdmin(selectedParticipantId)}
+                                                                        >
+                                                                            Give Admin
+                                                                        </MenuItem>,
+                                                                    ]
+                                                        }
 
                                                     </Menu>
 
@@ -1273,6 +1266,8 @@ export default function ChatInfo({
                                                )
                                             })}
 
+                                            
+
                                         </Box>
                                         
                                         </Box>
@@ -1280,6 +1275,18 @@ export default function ChatInfo({
                                         
                                 
                                     </Box>
+                                )}
+
+                                {/* Place this OUTSIDE the .map(), after the participants list */}
+                                {profileDrawerOpen && drawerParticipant && (
+                                    <Suspense fallback={<div>loading...</div>}>
+                                        <ProfileDrawer
+                                            openProfileDrawer={profileDrawerOpen}
+                                            closeProfileDrawer={handleCloseProfileDrawer}
+                                            userId={drawerParticipant.user_code}
+                                            recipient={drawerParticipant}
+                                        />
+                                    </Suspense>
                                 )}
 
                             

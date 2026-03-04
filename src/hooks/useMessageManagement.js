@@ -119,8 +119,10 @@ export const useMessageManagement = (currentChatId, socket, fetchChat) => {
   }, [socket, fetchChat, api, token]);
 
   const handleReply = useCallback((message) => {
+    console.log("messageReply", message);
     setRepliedMessage({
       id: message.id,
+      chat_id: message.chat_id,
       sender: message.sender?.username,
       textContent: message.text_content,
       mediaUrl: message.media_url,

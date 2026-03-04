@@ -52,6 +52,7 @@ export function useMessageActions({
       updateMessageState({
         replied: {
           id: message.id,
+          chat_id: message.chat_id,
           sender: message.sender?.username,
           textContent: message.text_content,
           mediaUrl: message.media_url,
@@ -81,6 +82,7 @@ export function useMessageActions({
       updateMessageState({
         edited: {
           id: message.id,
+          chat_id: message.chat_id,
           sender: message.sender?.username,
           textContent: message.text_content,
         },

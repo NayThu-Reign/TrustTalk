@@ -655,14 +655,17 @@ const [selectedMentionIndex, setSelectedMentionIndex] = useState(0); // ADD THIS
         <Box
             sx={containerStyle}
         >
-            {(repliedMessage || editedMessage) && (
-                <MessagePreview 
-                    message={repliedMessage || editedMessage}
-                    onCancel={repliedMessage ? onCancelReply : onCancelEdit}
-                    type={repliedMessage ? 'reply' : 'edit'}
-                    api={api}
-                />
-            )}
+            {(
+  (repliedMessage && repliedMessage.chat_id == chat.id) ||
+  (editedMessage && editedMessage.chat_id == chat.id)
+) && (
+  <MessagePreview
+    message={repliedMessage || editedMessage}
+    onCancel={repliedMessage ? onCancelReply : onCancelEdit}
+    type={repliedMessage ? "reply" : "edit"}
+    api={api}
+  />
+)}
 
             {selectedFile && (
                 <FilePreview
