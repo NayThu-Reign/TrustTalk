@@ -964,7 +964,7 @@ export default function SideBar() {
                                         src={
                                             user?.user_photo
                                                 ? (user.user_photo.startsWith('data:') ? user.user_photo : `${api}/${user.user_photo}`)
-                                                : '/splash.webp'
+                                                : '../assets/splash.webp'
                                         }
                                         alt={user?.username || "Username"}
                                         sx={{
@@ -1167,7 +1167,7 @@ export default function SideBar() {
                             src={
                                 authUser?.user_photo
                                     ? (authUser.user_photo.startsWith('data:') ? authUser.user_photo : `${api}/${authUser.user_photo}`)
-                                    : '/splash.webp'
+                                    : '../assets/splash.webp'
                             }
                             alt={authUser?.username || "username"}
                             sx={{ width: "44px", height: "44px", background: "#D9D9D9" }}
@@ -1187,7 +1187,7 @@ export default function SideBar() {
                     </Box>
                 ) : (
                     <Avatar
-                        src={authUser?.user_photo ? `${api}/${authUser.user_photo}` : '/splash.webp'}
+                        src={authUser?.user_photo ? `${api}/${authUser.user_photo}` : '../assets/splash.webp'}
                         alt={authUser?.username || "username"}
                         sx={{ width: "44px", height: "44px", background: "#D9D9D9" }}
                     />
