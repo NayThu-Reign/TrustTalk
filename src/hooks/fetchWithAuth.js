@@ -1,5 +1,5 @@
 export async function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("refresh_token");
 
   const headers = {
     ...(options.headers || {}),
@@ -15,8 +15,9 @@ export async function fetchWithAuth(url, options = {}) {
 
     if (response.status === 401) {
       console.warn("Unauthorized. Redirecting to login page.");
-      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
       localStorage.removeItem("e2ee_keypair");
       
       // Redirect to login page

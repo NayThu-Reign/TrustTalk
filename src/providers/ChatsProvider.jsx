@@ -1073,24 +1073,34 @@ case "UNPIN_MESSAGE": {
             }
 
             case "REPLACE_OPTIMISTIC_MESSAGE": {
-  const realMessage = action.payload;
-
-  console.log("Replacing optimistic message:", realMessage);
-
-  return {
-    ...state,
-    messages: state.messages.map(msg =>
-      msg.client_temp_id &&
-      msg.client_temp_id === realMessage.client_temp_id
-        ? {
-            ...realMessage,
-            isOptimistic: false,
+              const realMessage = action.payload;
             
-          }
-        : realMessage
-    ),
-  };
-}
+              const existingIndex = state.messages.findIndex(
+                msg =>
+                  msg.client_temp_id &&
+                  msg.client_temp_id === realMessage.client_temp_id
+              );
+            
+              if (existingIndex !== -1) {
+                // Replace optimistic message
+                const updatedMessages = [...state.messages];
+                updatedMessages[existingIndex] = {
+                  ...realMessage,
+                  isOptimistic: false,
+                };
+            
+                return {
+                  ...state,
+                  messages: updatedMessages,
+                };
+              }
+            
+              // If no optimistic message found (other device case)
+              return {
+                ...state,
+                messages: [...state.messages, realMessage],
+              };
+            }
 
             
 
@@ -1164,6 +1174,7 @@ const hasRunRef = useRef(false);
     const [ activeUsers, setActiveUsers ] = useState([]);
     const prevChatIdRef = useRef();
     const prevChatIdsRef = useRef([]);
+    const isFromCacheRef = useRef(false);
     const [hideActiveStatus, setHideActiveStatus] = useState(false);
     const [isAuthActive, setIsAuthActive] = useState(authUser?.hide_active_status ? false : true);
     // const [ shouldScrollToBottom, setShouldScrollToBottom ] = useState(false);
@@ -1398,7 +1409,7 @@ useEffect(() => {
           const token = localStorage.getItem('token');
           const api = import.meta.env.VITE_API_URL;
 
-          const response = await fetch(`${api}/api/users`, {
+          const response = await fetchWithAuth(`${api}/api/users`, {
             method: 'GET',
             headers: {
             
@@ -1582,41 +1593,46 @@ function ChatSync() {
 
     const fetchChatsFn = useCallback(async () => {
       if (!authUser) return;
-
-      const cachePromise = window.messageDb ? window.messageDb.getChats(100, 0).catch(() => []) : Promise.resolve([]);
-      const apiPromise = fetchFromApi();
-
-      let cacheData = null;
-      try {
-        const cachedChats = await cachePromise;
-        if (cachedChats?.length > 0) {
-          console.log('✅ Found', cachedChats.length, 'chats in cache, showing first', cachedChats);
-          cacheData = cachedChats;
+    
+      let cachedChats = null;
+    
+      // 1️⃣ Try reading cache first (for instant UI)
+      if (window.messageDb) {
+        try {
+          cachedChats = await window.messageDb.getChats(100, 0);
+          if (cachedChats?.length > 0) {
+            console.log("🗄 Showing cached chats immediately");
+            isFromCacheRef.current = true;
+            setData(cachedChats);
+          }
+        } catch (e) {
+          console.warn("Cache read failed:", e);
         }
-      } catch (e) {
-        console.error('Failed to read cache:', e);
       }
-
-      if (cacheData) {
-        apiPromise
-          .then((apiResult) => {
-            if (!cancelledRef.current) {
-              console.log('✅ API returned, replacing cache with fresh chats');
-              setData(apiResult);
-            }
-          })
-          .catch((apiError) => {
-            if (!cancelledRef.current) {
-              console.error('❌ API fetch failed (kept cache):', apiError);
-            }
-          });
-        return cacheData;
-      }
-
+    
+      // 2️⃣ Always fetch API in background
       try {
-        console.log('🌐 No cache, fetching chats from API...');
-        return await apiPromise;
+        console.log("🌐 Fetching fresh chats from API...");
+        const apiResult = await fetchFromApi();
+    
+        if (!cancelledRef.current && apiResult) {
+          console.log("✅ API returned fresh chats, updating UI");
+          isFromCacheRef.current = false;
+          setData(apiResult);
+          setError(null);
+        }
+    
+        return apiResult;
       } catch (apiError) {
+        console.warn("❌ API failed");
+    
+        // If we already showed cache, keep it and don't throw
+        if (cachedChats?.length > 0) {
+          console.log("⚠️ Keeping cached data since API failed");
+          return cachedChats;
+        }
+    
+        // No cache + API failed = real error
         throw apiError;
       }
     }, [authUser, fetchFromApi]);
@@ -1675,7 +1691,7 @@ function ChatSync() {
       isLoading,
       error,
       refetch,
-      isFromCache: !!data && data.length > 0,
+      isFromCache: isFromCacheRef.current,
       isOffline: !!error && !data,
     };
   }

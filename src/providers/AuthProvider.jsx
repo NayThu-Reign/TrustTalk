@@ -112,7 +112,9 @@ export default function AuthProvider({ children }) {
         throw new Error(error.message || "Login failed");
       }
 
-      const { access_token } = await res.json();
+      const { access_token, refresh_token } = await res.json();
+
+      // consol.log('')
 
       // Step 2: Fetch user details with the token
       const userRes = await fetch(`${api}/api/users/get-detail`, {
@@ -131,6 +133,7 @@ export default function AuthProvider({ children }) {
 
       // Step 3: Store token and user data
       localStorage.setItem("token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       console.log("Logged in user:", data.user, access_token);
@@ -226,6 +229,7 @@ export default function AuthProvider({ children }) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("e2ee_keypair");
+    localStorage.removeItem("refresh_token");
     dispatch({ type: "LOGOUT" });
   };
 
