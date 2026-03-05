@@ -1271,45 +1271,59 @@ const decryptChatKey = async (chatKeyRecord, chatId) => {
 const decryptMedia = async (item, chatId) => {
   const mediaId = item.id || item.media_url;
 
-  console.log("media", mediaId);
-  console.log("mediaChat", item, "chat", chatId);
-
-  // Cache hit
-  // if (decryptedMediaCache.has(mediaId)) {
-  //   return decryptedMediaCache.get(mediaId);
-  // }
-
   await sodium.ready;
 
-  const keyBase64 = localStorage.getItem(
+  let keyBase64 = localStorage.getItem(
     `chatkey_${chatId}_v${item.key_version}`
   );
-  if (!keyBase64) throw new Error("Missing media key");
+
+  // If key missing → fetch all keys
+  if (!keyBase64) {
+    try {
+      const api = import.meta.env.VITE_API_URL;
+
+      const res = await fetchWithAuth(`${api}/api/chats/${chatId}/key`);
+      const { keys } = await res.json();
+
+      for (const keyRecord of keys) {
+        await decryptChatKey(keyRecord, chatId);
+      }
+
+      // try again after storing
+      keyBase64 = localStorage.getItem(
+        `chatkey_${chatId}_v${item.key_version}`
+      );
+
+    } catch (err) {
+      console.warn("Failed to fetch key in realtime", err);
+    }
+  }
+
+  if (!keyBase64) {
+    throw new Error(`Missing key for version ${item.key_version}`);
+  }
 
   const key = sodium.from_base64(keyBase64);
-  console.log("keykey",key, item.id);
   const nonce = sodium.from_base64(item.nonce);
-
-  console.log("none", nonce, item.id);
 
   const api = import.meta.env.VITE_API_URL;
   const res = await fetch(`${api}/${item.media_url}`);
   const encryptedBase64 = await res.text();
 
-  console.log("encryptedBase64", encryptedBase64, item.id);
-
   const ciphertext = sodium.from_base64(encryptedBase64.trim());
-  console.log("ciphertext", ciphertext, item.id);
-  const decryptedBytes = sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
-  console.log("decryptedBytes", decryptedBytes, item.id);
 
-  // MIME type
+  const decryptedBytes = sodium.crypto_secretbox_open_easy(
+    ciphertext,
+    nonce,
+    key
+  );
+
+  // MIME
   let mime = "application/octet-stream";
   switch (item.media_type) {
     case "image": mime = "image/jpeg"; break;
     case "video": mime = "video/mp4"; break;
     case "audio": mime = "audio/mpeg"; break;
-    case "file":  mime = "application/octet-stream"; break;
   }
 
   const blob = new Blob([decryptedBytes], { type: mime });
