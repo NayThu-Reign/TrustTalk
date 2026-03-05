@@ -1124,7 +1124,7 @@ export default function SideBar() {
                             <CircularProgress sx={{ color: "#28A745" }} />
                         </Box>
                     ) : (
-                        <Box sx={{ height: onlineUsers.length > 0 ? "48vh" : "55vh", overflowY: "auto" }}>
+                        <Box sx={{ height: "50vh", overflowY: "auto" }}>
                             {filteredChats.length > 0 ? (
                                 <AutoSizer>
                                     {({ height, width }) => (
