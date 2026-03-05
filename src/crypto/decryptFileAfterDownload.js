@@ -45,8 +45,8 @@ export async function decryptFileAfterDownload(ciphertextBase64, nonceBase64, ch
 
 
     // get key from session storage
-    const latestVersion = version || sessionStorage.getItem(`chatkey_${chatId}_latestVersion`);
-    const keyBase64 = sessionStorage.getItem(`chatkey_${chatId}_v${latestVersion}`);
+    const latestVersion = version || localStorage.getItem(`chatkey_${chatId}_latestVersion`);
+    const keyBase64 = localStorage.getItem(`chatkey_${chatId}_v${latestVersion}`);
     if (!keyBase64) {
       // cleanup
       worker.removeEventListener("message", onMessage);

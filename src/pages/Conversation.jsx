@@ -847,7 +847,7 @@ const visibleMessageList = useMemo(() => {
       //  const { ciphertext, nonce } = await encryptInWorker(chat.id, text_content);
       // const { ciphertext, nonce } = await encryptMessage(chat.id, text_content);
       const currentChatKeyVersion = chat
-        ? sessionStorage.getItem(`chatkey_${chat.id}_latestVersion`)
+        ? localStorage.getItem(`chatkey_${chat.id}_latestVersion`)
         : 1;
 
       cipher_text = ciphertext;
@@ -1602,7 +1602,7 @@ const {
       });
 
       const currentChatKeyVersion =
-        sessionStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1;
+        localStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1;
 
       formData.append("ciphertext", ciphertext);
       formData.append("nonce", nonce);
@@ -1724,7 +1724,7 @@ const {
       //  const { ciphertext, nonce } = await encryptInWorker(chat.id, text_content);
       // const { ciphertext, nonce } = await encryptMessage(chat.id, text_content);
       const currentChatKeyVersion = chat
-        ? sessionStorage.getItem(`chatkey_${chat.id}_latestVersion`)
+        ? localStorage.getItem(`chatkey_${chat.id}_latestVersion`)
         : 1;
 
       formData.append("ciphertext", ciphertext);

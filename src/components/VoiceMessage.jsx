@@ -91,7 +91,7 @@ export default function VoiceMessage ({chat,mediaType,setMediaType, updateMessag
     formData.append("media_type", "audio");
 
     const keyVersion =
-      sessionStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1;
+      localStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1;
 
     formData.append("key_version", keyVersion);
 

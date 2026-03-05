@@ -4,7 +4,7 @@ export async function encryptMessage(chatId, plaintext) {
   await sodium.ready;
 
   console.log("encryptingChatKeyId", chatId);
-  const keyBase64 = sessionStorage.getItem(`chatkey_${chatId}`);
+  const keyBase64 = localStorage.getItem(`chatkey_${chatId}`);
   if (!keyBase64) throw new Error("No chat key cached");
   
   const key = sodium.from_base64(keyBase64);
@@ -21,7 +21,7 @@ export async function decryptMessageWithChatKey(chatId, ciphertextBase64, nonceB
   if (!ciphertextBase64) return null;
   await sodium.ready;
 
-  const chatKeyBase64 = sessionStorage.getItem(`chatkey_${chatId}`);
+  const chatKeyBase64 = localStorage.getItem(`chatkey_${chatId}`);
   if (!chatKeyBase64) throw new Error("Missing chat key for this chat");
 
   const key = sodium.from_base64(chatKeyBase64);
@@ -81,8 +81,8 @@ export const rotateChatKey = async (chatId, participants) => {
     console.log(`🔑 Chat key rotated to version v${newVersion}`);
 
     // 4️⃣ Cache locally for this user
-    sessionStorage.setItem(`chatkey_${chatId}_v${newVersion}`, newKeyBase64);
-    sessionStorage.setItem(`chatkey_${chatId}_latestVersion`, newVersion);
+    localStorage.setItem(`chatkey_${chatId}_v${newVersion}`, newKeyBase64);
+    localStorage.setItem(`chatkey_${chatId}_latestVersion`, newVersion);
 
     return newVersion;
   } else {
@@ -97,10 +97,10 @@ export async function handleFileDownload(item, chatId) {
     await sodium.ready;
 
     console.log("LatestVersion24", chatId);
-     const latestVersion = sessionStorage.getItem(`chatkey_${chatId}_latestVersion`);
+     const latestVersion = localStorage.getItem(`chatkey_${chatId}_latestVersion`);
 
     // const keyBase64 = sessionStorage.getItem(`chatkey_${chatId}`);
-     const keyBase64 = sessionStorage.getItem(
+     const keyBase64 = localStorage.getItem(
     `chatkey_${chatId}_v${latestVersion}`
   );
     if (!keyBase64) {

@@ -273,7 +273,7 @@ const MemoizedChatItem = React.memo(({ index, style, data }) => {
             sx={{
                 paddingTop: "10px",
                 width: "100%",
-                minHeight: "60px",
+                // minHeight: "60%",
                 display: "flex",
                 marginBottom: "8px",
                 cursor: "pointer",
@@ -1124,7 +1124,7 @@ export default function SideBar() {
                             <CircularProgress sx={{ color: "#28A745" }} />
                         </Box>
                     ) : (
-                        <Box sx={{ height: "350px", overflowY: "auto" }}>
+                        <Box sx={{ height: onlineUsers.length > 0 ? "48vh" : "55vh", overflowY: "auto" }}>
                             {filteredChats.length > 0 ? (
                                 <AutoSizer>
                                     {({ height, width }) => (

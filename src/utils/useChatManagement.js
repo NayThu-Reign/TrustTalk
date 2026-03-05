@@ -418,7 +418,7 @@ export function useChatManagement({
         formData.append('chat_id', chat.id);
         formData.append(
           'key_version',
-          sessionStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1
+          localStorage.getItem(`chatkey_${chat.id}_latestVersion`) || 1
         );
 
         if (!chat.is_group_chat) {

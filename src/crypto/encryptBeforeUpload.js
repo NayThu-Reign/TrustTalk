@@ -10,10 +10,10 @@ export async function encryptFileBeforeUpload(file, chatId,version = null) {
     // Handle result
    
     const latestVersion =
-    version || sessionStorage.getItem(`chatkey_${chatId}_latestVersion`);
+    version || localStorage.getItem(`chatkey_${chatId}_latestVersion`);
 
 
-    const keyBase64 = sessionStorage.getItem(
+    const keyBase64 = localStorage.getItem(
     `chatkey_${chatId}_v${latestVersion}`
   );
 

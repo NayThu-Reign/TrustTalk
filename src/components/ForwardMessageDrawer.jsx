@@ -266,7 +266,7 @@ const ForwardMessageDrawer = ({
 
       for (const chat of selectedChats) {
         const participants = chat.participants;
-        const keyVersion = sessionStorage.getItem(
+        const keyVersion = localStorage.getItem(
           `chatkey_${chat.id}_latestVersion`
         );
 
@@ -325,7 +325,7 @@ const ForwardMessageDrawer = ({
             const encryptedBase64 = await res.text();
             const encryptedBytes = sodium.from_base64(encryptedBase64.trim());
 
-            const sourceKeyBase64 = sessionStorage.getItem(
+            const sourceKeyBase64 = localStorage.getItem(
               `chatkey_${forwardedMessage.chat_id}_v${forwardedMessage.key_version}`
             );
 

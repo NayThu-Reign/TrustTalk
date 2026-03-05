@@ -1262,8 +1262,8 @@ const decryptChatKey = async (chatKeyRecord, chatId) => {
 
 
 
-  sessionStorage.setItem(`chatkey_${chatId}_v${version}`, chatKeyBase64);
-  sessionStorage.setItem(`chatkey_${chatId}_latestVersion`, version);
+  localStorage.setItem(`chatkey_${chatId}_v${version}`, chatKeyBase64);
+  localStorage.setItem(`chatkey_${chatId}_latestVersion`, version);
 
   console.log(`✅ Stored chat key v${version} for chat ${chatId}`);
 };
@@ -1281,7 +1281,7 @@ const decryptMedia = async (item, chatId) => {
 
   await sodium.ready;
 
-  const keyBase64 = sessionStorage.getItem(
+  const keyBase64 = localStorage.getItem(
     `chatkey_${chatId}_v${item.key_version}`
   );
   if (!keyBase64) throw new Error("Missing media key");
@@ -1911,16 +1911,21 @@ socket.on("userBecameInvisible", ({ employeeId }) => {
   // 1️⃣ Ensure we have the chat key decrypted and cached
   const chatId = message.chat_id;
   const version = message.key_version;
-  const localKey = sessionStorage.getItem(`chatkey_${chatId}_v${version}`);
+  const localKey = localStorage.getItem(`chatkey_${chatId}_v${version}`);
   console.log("currentChatData", chatId);
 
 
   if (!localKey) {
         try {
         const res = await fetchWithAuth(`${api}/api/chats/${chatId}/key`);
-        const chatKeyRecord = await res.json();
-        console.log("chatKeyRecordinrealtime24", chatKeyRecord);
-        await decryptChatKey(chatKeyRecord, chatId);
+        const keys = await res.json();
+
+        for (const keyRecord of keys) {
+          await decryptChatKey(keyRecord, chatId);
+        }
+        // const chatKeyRecord = await res.json();
+        // console.log("chatKeyRecordinrealtime24", chatKeyRecord);
+        // await decryptChatKey(chatKeyRecord, chatId);
         } catch (err) {
         console.warn("Failed to fetch key in realtime", err);
         }
@@ -3080,7 +3085,7 @@ socket.on("editedMessage", async (message) => {
   const version = message.key_version;
 
   // 🔑 Ensure key exists
-  const localKey = sessionStorage.getItem(`chatkey_${chatId}_v${version}`);
+  const localKey = localStorage.getItem(`chatkey_${chatId}_v${version}`);
   if (!localKey) {
     try {
       const res = await fetchWithAuth(`${api}/api/chats/${chatId}/key`);

@@ -58,6 +58,7 @@ async function decryptSingleMessage(msg, chatId, decryptMedia) {
       });
     }
   } catch (error) {
+    console.log("decryptError", error);
     return null; 
   }
 
@@ -353,6 +354,9 @@ const loadMessages = useCallback(async () => {
               const decrypted = await decryptSingleMessage(msg, chatId,decryptMedia);
               if (decrypted) {
                 decryptedBatch.push(decrypted);
+              } else {
+                console.error('❌ Failed to decrypt single message');
+                return;
               }
             }
   

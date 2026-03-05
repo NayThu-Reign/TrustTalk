@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import MessageBubble from './MessageBubble';
 import { formatMessageDate } from '../utils/messageUtils';
+import { format } from 'date-fns';
 
 /**
  * MessageList component - Handles rendering of grouped messages with date headers
@@ -91,14 +92,30 @@ const MessageListInner = ({
   bottomRef,
 }) => {
   // Group messages by date
+  // const groupedMessages = useMemo(() => {
+  //   return visibleMessageList.reduce((acc, message) => {
+  //     const created = message.createdAt || message.created_at;
+  //     const formattedDate = formatMessageDate(created);
+  //     if (!acc[formattedDate]) {
+  //       acc[formattedDate] = [];
+  //     }
+  //     acc[formattedDate].push({ ...message, type: 'message' });
+  //     return acc;
+  //   }, {});
+  // }, [visibleMessageList]);
+
   const groupedMessages = useMemo(() => {
     return visibleMessageList.reduce((acc, message) => {
       const created = message.createdAt || message.created_at;
-      const formattedDate = formatMessageDate(created);
-      if (!acc[formattedDate]) {
-        acc[formattedDate] = [];
+  
+      const groupKey = format(new Date(created), "yyyy-MM-dd"); // real sortable key
+  
+      if (!acc[groupKey]) {
+        acc[groupKey] = [];
       }
-      acc[formattedDate].push({ ...message, type: 'message' });
+  
+      acc[groupKey].push({ ...message, type: "message" });
+  
       return acc;
     }, {});
   }, [visibleMessageList]);
@@ -106,7 +123,9 @@ const MessageListInner = ({
   // Group leave events by date
   const groupedLeaves = useMemo(() => {
     return (leftParticipants || []).reduce((acc, leave) => {
-      const formattedDate = formatMessageDate(leave.leftAt);
+      const formattedDate = format(new Date(leave.leftAt), "yyyy-MM-dd"); // real sortable key
+
+      // const formattedDate = formatMessageDate(leave.leftAt);
       if (!acc[formattedDate]) {
         acc[formattedDate] = [];
       }
@@ -122,7 +141,9 @@ const MessageListInner = ({
   // Group join events by date
   const groupedJoins = useMemo(() => {
     return (newParticipants || []).reduce((acc, join) => {
-      const formattedDate = formatMessageDate(join.joinedAt);
+      const formattedDate = format(new Date(join.joinedAt), "yyyy-MM-dd"); // real sortable key
+
+      // const formattedDate = formatMessageDate(join.joinedAt);
       if (!acc[formattedDate]) {
         acc[formattedDate] = [];
       }
@@ -202,8 +223,10 @@ const MessageListInner = ({
       )}
 
       {/* Grouped Messages */}
-      {Object.entries(sortedCombinedGroups).map(([dateLabel, items]) => (
-        <React.Fragment key={dateLabel}>
+      {Object.entries(sortedCombinedGroups).map(([dateLabel, items]) => {
+        const label = formatMessageDate(dateLabel);
+        return (
+          <React.Fragment key={dateLabel}>
           {/* Date Header */}
           <Typography
             sx={{
@@ -214,7 +237,7 @@ const MessageListInner = ({
               color: '#3C3C4399',
             }}
           >
-            {dateLabel}
+            {label}
           </Typography>
 
           {/* Messages for this date */}
@@ -280,7 +303,8 @@ const MessageListInner = ({
             />
           ))}
         </React.Fragment>
-      ))}
+        )
+      })}
 
       {/* Bottom scroll anchor */}
       <Box ref={bottomRef} />
